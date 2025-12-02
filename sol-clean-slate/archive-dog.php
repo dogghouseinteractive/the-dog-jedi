@@ -39,7 +39,8 @@ get_header(); ?>
 								} else {
 									$dog_image_id = get_field('image');
 								}
-								$dog_image = wp_get_attachment_image_src($dog_image_id, 'avatar')[0];
+								$dog_image_data = wp_get_attachment_image_src($dog_image_id, 'avatar');
+								$dog_image = $dog_image_data ? $dog_image_data[0] : '';
 								$dog_breed = get_field('breed');
 								$dog_weight = get_field('weight');
 								$dog_gender = get_field('gender');
@@ -143,7 +144,8 @@ get_header(); ?>
 								} else {
 									$dog_image_id = get_field('image');
 								}
-								$dog_image = wp_get_attachment_image_src($dog_image_id, 'avatar')[0];
+								$dog_image_data = wp_get_attachment_image_src($dog_image_id, 'avatar');
+								$dog_image = $dog_image_data ? $dog_image_data[0] : '';
 								$dog_breed = get_field('breed');
 								$dog_weight = get_field('weight');
 								$dog_gender = get_field('gender');
