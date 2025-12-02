@@ -1,0 +1,85 @@
+$base-color: #e9ebec;
+
+.calendar {
+	display: flex;
+	flex-flow: column;
+	.header {
+		.month-year {
+			font-size: 20px;
+			font-weight: bold;
+			color: darken($base-color, 50);
+			padding: 20px 0;
+		}
+	}
+	.days {
+		$border: 1px solid darken($base-color, 1);
+		display: flex;
+		flex-flow: wrap;
+		.day_name {
+			$background-color: #448cd6;
+			width: calc(100% / 7);
+			border-right: 1px solid darken($background-color, 7);
+			padding: 20px;
+			text-transform: uppercase;
+			font-size: 12px;
+			font-weight: bold;
+			color: #818589;
+			color: #fff;
+			background-color: $background-color;
+			&:nth-child(7) {
+				border: none;
+			}
+		}
+		.day_num {
+			display: flex;
+			flex-flow: column;
+			width: calc(100% / 7);
+			border-right: $border;
+			border-bottom: $border;
+			padding: 15px;
+			font-weight: bold;
+			color: darken($base-color, 40);
+			cursor: pointer;
+			min-height: 100px;
+			span {
+				display: inline-flex;
+				width: 30px;
+				font-size: 14px;
+			}
+			.event {
+				margin-top: 10px;
+				font-weight: 500;
+				font-size: 14px;
+				padding: 3px 6px;
+				border-radius: 4px;
+				background-color: #f7c30d;
+				color: #fff;
+				word-wrap: break-word;
+				&.green {
+					background-color: #51ce57;
+				}
+				&.blue {
+					background-color: #518fce;
+				}
+				&.red {
+					background-color: #ce5151;
+				}
+			}
+			&:nth-child(7n+1) {
+				border-left: $border;
+			}
+			&:hover {
+				background-color: lighten($base-color,7.2);
+			}
+			&.ignore {
+				background-color: lighten($base-color,7.2);
+				color: darken($base-color, 10);
+				cursor: inherit;
+			}
+			&.selected {
+				background-color: lighten($base-color, 3);
+				cursor: inherit;
+			}
+		}
+	}
+}

@@ -1,0 +1,16 @@
+# Google Cloud Service Account Credentials
+sol-clean-slate/vendor/google/*.json
+sol-clean-slate/*calendar*.json
+**/google/*.json
+
+# WordPress
+wp-config.php
+.htaccess
+
+# Environment files
+.env
+.env.local
+
+# OS Files
+.DS_Store
+Thumbs.db
