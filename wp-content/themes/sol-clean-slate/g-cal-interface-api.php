@@ -73,7 +73,7 @@ if (isset($_SESSION['access_token']) /* && isset($_SESSION['refresh_token'] ) */
 			$user_bookings['color'] = $color;
 			$booking_dates[] = $user_bookings;
 
-			$eventTitle = $user_bookings['service'] . ' for ' . $user_bookings['dogs'];
+			$eventTitle = $user_bookings['dogs'];
 			$eventDescription = 'tdj-booking-'.get_the_ID();
 			$eventStart = $user_bookings['start_date'] . 'T' . $user_bookings['dropoff_time'] . '-05:00'; // Timezone example
 			$eventEnd = $user_bookings['end_date'] . 'T' . $user_bookings['pickup_time'] . '-05:00';
@@ -117,15 +117,37 @@ if (isset($_SESSION['access_token']) /* && isset($_SESSION['refresh_token'] ) */
 		}
 	}
 
-	// To Add New Events from TDJ to Google Calendar 
-	foreach($allEvents as $event) {
-		if(in_array($event->description, $tdj_bookings)) {
-				// event is already in Google Calendar, but let's check for updates
-				//check_for_changes();
-		} else {
+	// Update existing TDJ events in Google Calendar
+	foreach($allEvents as $gcal_event) {
+		if(in_array($gcal_event->description, $tdj_bookings)) {
+			// event is already in Google Calendar, check if title needs updating
+			$booking_id = str_replace('tdj-booking-', '', $gcal_event->description);
+			$dogs = get_field('dogs_involved', $booking_id);
+			$dog_names = array();
+			foreach($dogs as $dog) {
+				$dog_names[] = get_the_title($dog);
+			}
+			$new_title = implode(', ', $dog_names);
+
+			// Check if title needs updating
+			if($gcal_event->summary != $new_title) {
+				try {
+					$gcal_event->setSummary($new_title);
+					$updatedEvent = $google_service->events->update('troy@dogghouseinteractive.com', $gcal_event->getId(), $gcal_event);
+					echo 'Event title updated to "' . $new_title . '" for booking ' . $gcal_event->description . '<br><br>';
+				} catch (Exception $e) {
+					echo "When attempting to update event title, an error occurred: " . $e->getMessage() . '<br><br>';
+				}
+			}
+		}
+	}
+
+	// Add new events from TDJ to Google Calendar
+	foreach($events as $new_event) {
+		if(!in_array($new_event->description, $tdj_bookings)) {
 			try {
 				$reminderOverrides = [
-						[ 
+						[
 								'method' => 'popup',   // Reminder delivery method (email, popup, etc.)
 								'minutes' => 1440        // Minutes before the event starts
 						],
@@ -133,13 +155,13 @@ if (isset($_SESSION['access_token']) /* && isset($_SESSION['refresh_token'] ) */
 				];
 				$reminders = new Google_Service_Calendar_EventReminders();
 				$reminders->setUseDefault(false);
-				$reminders->setOverrides($reminderOverrides); 
-				$event->setReminders($reminders);
-				$createdEvent = $google_service->events->insert('troy@dogghouseinteractive.com', $event);
+				$reminders->setOverrides($reminderOverrides);
+				$new_event->setReminders($reminders);
+				$createdEvent = $google_service->events->insert('troy@dogghouseinteractive.com', $new_event);
 				echo "Event Created! ID: " . $createdEvent->getId() . '<br><br>';
 			} catch (Exception $e) {
 				echo "When attempting to add a new event, an error occurred: " . $e->getMessage()  . '<br><br>';
-			} 
+			}
 		}
 	}
 
@@ -289,18 +311,38 @@ if (isset($_SESSION['access_token']) /* && isset($_SESSION['refresh_token'] ) */
 			}
 		}
 
-		// To Add New Events from TDJ to Google Calendar 
-		foreach($allEvents as $event) {
-			$eventId = $event->getID();
-			$eventDesc = $event->description;
-			if(in_array($event->description, $tdj_bookings)) {
-				// event is already in Google Calendar, but let's check for updates
-				//check_for_changes();
-			} else {
+		// Update existing TDJ events in Google Calendar
+		foreach($allEvents as $gcal_event) {
+			if(in_array($gcal_event->description, $tdj_bookings)) {
+				// event is already in Google Calendar, check if title needs updating
+				$booking_id = str_replace('tdj-booking-', '', $gcal_event->description);
+				$dogs = get_field('dogs_involved', $booking_id);
+				$dog_names = array();
+				foreach($dogs as $dog) {
+					$dog_names[] = get_the_title($dog);
+				}
+				$new_title = implode(', ', $dog_names);
+
+				// Check if title needs updating
+				if($gcal_event->summary != $new_title) {
+					try {
+						$gcal_event->setSummary($new_title);
+						$updatedEvent = $google_service->events->update('troy@dogghouseinteractive.com', $gcal_event->getId(), $gcal_event);
+						echo 'Event title updated to "' . $new_title . '" for booking ' . $gcal_event->description . '<br><br>';
+					} catch (Exception $e) {
+						echo "When attempting to update event title, an error occurred: " . $e->getMessage() . '<br><br>';
+					}
+				}
+			}
+		}
+
+		// Add new events from TDJ to Google Calendar
+		foreach($events as $new_event) {
+			if(!in_array($new_event->description, $tdj_bookings)) {
 				// Create a new Google Calendar Event
 				try {
 					$reminderOverrides = [
-							[ 
+							[
 									'method' => 'popup',   // Reminder delivery method (email, popup, etc.)
 									'minutes' => 1440        // Minutes before the event starts
 							],
@@ -308,14 +350,14 @@ if (isset($_SESSION['access_token']) /* && isset($_SESSION['refresh_token'] ) */
 					];
 					$reminders = new Google_Service_Calendar_EventReminders();
 					$reminders->setUseDefault(false);
-					$reminders->setOverrides($reminderOverrides); 
-					$event->setReminders($reminders);
-					$createdEvent = $google_service->events->insert('troy@dogghouseinteractive.com', $event);
+					$reminders->setOverrides($reminderOverrides);
+					$new_event->setReminders($reminders);
+					$createdEvent = $google_service->events->insert('troy@dogghouseinteractive.com', $new_event);
 					echo "Event Created! ID: " . $createdEvent->getId() . '<br><br>';
 				} catch (Exception $e) {
 					echo "When attemping to add a new event, an error occurred: " . $e->getMessage()  . '<br><br>';
 				}
-			} 
+			}
 		}
 
 		// To Delete Events from Google Calendar that no longer exist in TDJ
