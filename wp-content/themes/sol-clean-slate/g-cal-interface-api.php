@@ -4,8 +4,12 @@
  * Template Name: Sync to Google Calendar
  */
 
+// Increase execution time and memory limits
+set_time_limit(300); // 5 minutes
+ini_set('memory_limit', '256M');
+
 $sessionLifetime = ini_set('session.gc_maxlifetime', 30*24*60*60); // 30 days in seconds
-session_start(); 
+session_start();
 $tokenExpiryTimestamp = time() + $sessionLifetime;
 
 if (isset($_SESSION['access_token']) /* && isset($_SESSION['refresh_token'] ) */ ) {
@@ -118,29 +122,39 @@ if (isset($_SESSION['access_token']) /* && isset($_SESSION['refresh_token'] ) */
 	}
 
 	// Update existing TDJ events in Google Calendar
+	echo 'Checking for event title updates...<br>';
+	flush();
+	$update_count = 0;
 	foreach($allEvents as $gcal_event) {
 		if(in_array($gcal_event->description, $tdj_bookings)) {
 			// event is already in Google Calendar, check if title needs updating
 			$booking_id = str_replace('tdj-booking-', '', $gcal_event->description);
 			$dogs = get_field('dogs_involved', $booking_id);
-			$dog_names = array();
-			foreach($dogs as $dog) {
-				$dog_names[] = get_the_title($dog);
-			}
-			$new_title = implode(', ', $dog_names);
+			if($dogs) {
+				$dog_names = array();
+				foreach($dogs as $dog) {
+					$dog_names[] = get_the_title($dog);
+				}
+				$new_title = implode(', ', $dog_names);
 
-			// Check if title needs updating
-			if($gcal_event->summary != $new_title) {
-				try {
-					$gcal_event->setSummary($new_title);
-					$updatedEvent = $google_service->events->update('troy@dogghouseinteractive.com', $gcal_event->getId(), $gcal_event);
-					echo 'Event title updated to "' . $new_title . '" for booking ' . $gcal_event->description . '<br><br>';
-				} catch (Exception $e) {
-					echo "When attempting to update event title, an error occurred: " . $e->getMessage() . '<br><br>';
+				// Check if title needs updating
+				if($gcal_event->summary != $new_title) {
+					try {
+						$gcal_event->setSummary($new_title);
+						$updatedEvent = $google_service->events->update('troy@dogghouseinteractive.com', $gcal_event->getId(), $gcal_event);
+						$update_count++;
+						echo 'Event title updated to "' . $new_title . '" for booking ' . $gcal_event->description . '<br>';
+						flush();
+					} catch (Exception $e) {
+						echo "When attempting to update event title, an error occurred: " . $e->getMessage() . '<br>';
+						flush();
+					}
 				}
 			}
 		}
 	}
+	echo "Updated $update_count event titles.<br><br>";
+	flush();
 
 	// Add new events from TDJ to Google Calendar
 	foreach($events as $new_event) {
@@ -312,29 +326,39 @@ if (isset($_SESSION['access_token']) /* && isset($_SESSION['refresh_token'] ) */
 		}
 
 		// Update existing TDJ events in Google Calendar
+		echo 'Checking for event title updates...<br>';
+		flush();
+		$update_count = 0;
 		foreach($allEvents as $gcal_event) {
 			if(in_array($gcal_event->description, $tdj_bookings)) {
 				// event is already in Google Calendar, check if title needs updating
 				$booking_id = str_replace('tdj-booking-', '', $gcal_event->description);
 				$dogs = get_field('dogs_involved', $booking_id);
-				$dog_names = array();
-				foreach($dogs as $dog) {
-					$dog_names[] = get_the_title($dog);
-				}
-				$new_title = implode(', ', $dog_names);
+				if($dogs) {
+					$dog_names = array();
+					foreach($dogs as $dog) {
+						$dog_names[] = get_the_title($dog);
+					}
+					$new_title = implode(', ', $dog_names);
 
-				// Check if title needs updating
-				if($gcal_event->summary != $new_title) {
-					try {
-						$gcal_event->setSummary($new_title);
-						$updatedEvent = $google_service->events->update('troy@dogghouseinteractive.com', $gcal_event->getId(), $gcal_event);
-						echo 'Event title updated to "' . $new_title . '" for booking ' . $gcal_event->description . '<br><br>';
-					} catch (Exception $e) {
-						echo "When attempting to update event title, an error occurred: " . $e->getMessage() . '<br><br>';
+					// Check if title needs updating
+					if($gcal_event->summary != $new_title) {
+						try {
+							$gcal_event->setSummary($new_title);
+							$updatedEvent = $google_service->events->update('troy@dogghouseinteractive.com', $gcal_event->getId(), $gcal_event);
+							$update_count++;
+							echo 'Event title updated to "' . $new_title . '" for booking ' . $gcal_event->description . '<br>';
+							flush();
+						} catch (Exception $e) {
+							echo "When attempting to update event title, an error occurred: " . $e->getMessage() . '<br>';
+							flush();
+						}
 					}
 				}
 			}
 		}
+		echo "Updated $update_count event titles.<br><br>";
+		flush();
 
 		// Add new events from TDJ to Google Calendar
 		foreach($events as $new_event) {
