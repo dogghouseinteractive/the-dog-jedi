@@ -113,7 +113,7 @@ class Bookings {
       $user_bookings['color'] = $color;
       $booking_dates[] = $user_bookings;
 
-      $eventTitle = $user_bookings['service'] . ' for ' . $user_bookings['dogs'];
+      $eventTitle = $user_bookings['dogs'];
       $eventDescription = 'tdj-booking-'.$post_id;
       $eventStart = $user_bookings['start_date'] . 'T' . $user_bookings['dropoff_time'] . '-04:00'; // Timezone example
       $eventEnd = $user_bookings['end_date'] . 'T' . $user_bookings['pickup_time'] . '-04:00';
